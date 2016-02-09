@@ -1,32 +1,72 @@
 <?php
 
 trait ModelHelper {
+	private static $db = Db::singleton();
 	
-	
+	/**
+	* Genera el string para la query a la base de datos de búsqueda por id
+	* @return String query_string
+	*/
 	private function generateSearchQuery() {
 		return 'SELECT * FROM ' . self::dbtable . ' WHERE id=' . $this->id;
+	}
+
+	/**
+	* Genera el string para la query a la base de datos de UPDATE, donde se actualizará con id = $this->id
+	* @return String query_string
+	*/
+	private function generateUpdateQuery($columns) {
+		unset($columns["id"]);
+		
+		$aux = array();
+		foreach($columns as $k) {
+			if(is_string($this->{$k})) {
+				$v = "'" . $db->real_scape_string($this->{$k}) . "'";
+			}
+			else {
+				$v = $this->{$k};
+			}
+			$aux[] = $k . '=' . $v;
+		}
+		
+		$query = 'UPDATE ' . self::dbtable . ' SET ';
+		$query .= implode(",", $aux);
+		$query .= " WHERE id=" . $this->id;
+		return $query;
+	}
+
+	/**
+	* Genera el string para la query a la base de datos de UPDATE, donde se actualizará todo el objeto con id = $this->id
+	* @return String query_string
+	*/
+	private function generateUpdateAllQuery() {
+		return generateUpdateQuery(array_keys(get_object_vars($this)));
 	}
 	
 	/**
 	* Genera el string para la query a la base de datos de UPDATE, donde se actualizará con id = $this->id
-	* Es necesario que en la clase exista la constante dbtable, la propiedad id y que las columnas existan en la base de datos.
 	* @return String query_string
 	*/
-	private function generateUpdateQuery($columns) {
-		$query = 'UPDATE ' . self::dbtable . ' SET ';
-		$query .= $columns[0] . "=" . $this->{$columns[0]};
-		array_shift($columns);
-		foreach($columns as $c) {
-			$query .= ", " . $c . "=" . $this->$$c;
+	private function generateInsertQuery() {
+		$columns = get_object_vars($this);
+		foreach($columns as &$v) {
+			if(is_string($v)) {
+				$v = "'" . $db->real_scape_string($v) . "'";
+			}
 		}
-		$query .= " WHERE id=" . $this->id;
+		unset($columns["id"]);
+		$query = 'INSERT INTO ' . self::dbtable;
+		$query .= ' (' . implode(',', array_keys($columns)) . ') ';
+		$query .= 'VALUES (' . implode(',',array_values($columns) . ')';
 		return $query;
 	}
 	
-	
-	
-	private function getColumnArray() {
-		return array_keys(get_class_vars());
+	/**
+	* Genera el string para la query a la base de datos DELETE por id=$this->id
+	* @return String query_string
+	*/
+	private function generateDeleteQuery() {
+		return 'DELETE FROM ' . self::dbtable . ' WHERE id=' . $this->id;
 	}
 }
 
