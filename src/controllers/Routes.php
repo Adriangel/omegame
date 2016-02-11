@@ -1,5 +1,4 @@
 <?php
-namespace Controllers;
 
 class Routes {
 	const MODELS = ROOT . "models\\";

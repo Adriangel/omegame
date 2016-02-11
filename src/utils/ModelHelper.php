@@ -1,9 +1,7 @@
 ﻿<?php
 
 trait ModelHelper {
-	//Añade la propiedad estática $db a la clase, para interacción con la base de datos.
-	private static $db = Db::singleton();
-
+	private $db;
 	
 	/*******************************************
 	**										  **
@@ -16,7 +14,7 @@ trait ModelHelper {
 	* @return mysqli_result resultado
 	*/
 	private function searchThis() {
-		$query = generateSearchQuery();
+		$query = $this->generateSearchQuery();
 		return $this->db->query($query);
 	}
 	
@@ -25,7 +23,7 @@ trait ModelHelper {
 	* @return mysqli_result resultado
 	*/
 	private function updateThis() {
-		$query = generateUpdateAllQuery();
+		$query = $this->generateUpdateAllQuery();
 		return $this->db->query($query);
 	}
 
@@ -66,12 +64,10 @@ trait ModelHelper {
 	* @return String query_string
 	*/
 	private function generateUpdateQuery($columns) {
-		unset($columns["id"]);
-		
 		$aux = array();
 		foreach($columns as $k) {
 			if(is_string($this->{$k})) {
-				$v = "'" . $db->real_scape_string($this->{$k}) . "'";
+				$v = "'" . $db->escape_string($this->{$k}) . "'";
 			}
 			else {
 				$v = $this->{$k};
@@ -90,7 +86,21 @@ trait ModelHelper {
 	* @return String query_string
 	*/
 	private function generateUpdateAllQuery() {
-		return generateUpdateQuery(array_keys(get_object_vars($this)));
+		$columns = get_object_vars($this);
+		unset($columns["id"]);
+		unset($columns["db"]);
+		$aux = array();
+		foreach($columns as $k=>&$v) {
+			if(is_string($v)) {
+				$v = "'" . $this->db->escape_string($v) . "'";
+			}
+			$aux[] = $k . '=' . $v;
+		}
+		
+		$query = 'UPDATE ' . self::dbtable . ' SET ';
+		$query .= implode(",", $aux);
+		$query .= " WHERE id=" . $this->id;
+		return $query;
 	}
 	
 	/**
@@ -99,15 +109,18 @@ trait ModelHelper {
 	*/
 	private function generateInsertQuery() {
 		$columns = get_object_vars($this);
+		unset($columns["id"]);
+		unset($columns["db"]);
+
 		foreach($columns as &$v) {
 			if(is_string($v)) {
-				$v = "'" . $db->real_scape_string($v) . "'";
+				$v = "'" . $db->escape_string($v) . "'";
 			}
 		}
 		unset($columns["id"]);
 		$query = 'INSERT INTO ' . self::dbtable;
 		$query .= ' (' . implode(',', array_keys($columns)) . ') ';
-		$query .= 'VALUES (' . implode(',',array_values($columns) . ')';
+		$query .= 'VALUES (' . implode(',',array_values($columns)) . ')';
 		return $query;
 	}
 	

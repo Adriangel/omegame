@@ -1,5 +1,4 @@
 ﻿<?php
-namespace Models;
 
 class User{
 	use ModelHelper;
@@ -11,29 +10,38 @@ class User{
 	private $pass;
 	private $email;
 
-
-	function __construct($id) {
-		$this->id = $id;
-		$this->searchThis();
+	function __construct() {
+		$this->db = Db::singleton();
+		$this->id = 0;
+		$this->user = "";
+		$this->pass = "";
+		$this->email = "";
 	}
 
 	function __destruct() {
-		$this->update();
+		if (isset($this->id)) {
+			$this->update();
+		}
 	}
 
-
+	public function getId(){return $this->id;}
+	public function getUser(){return $this->user;}
+	public function getPass(){return $this->pass;}
+	public function getEmail(){return $this->email;}
+	
+	public function setId($newId){$this->id = $newId;}
+	public function setUser($newUser){$this->user = $newUser;}
+	public function setPass($newPass){$this->pass = $newPass;}
+	public function setEmail($newEmail){$this->email = $newEmail;}
+	
 	/**
 	* Inserta el usuario en la base de datos, si no existe ni el usuario ni la contraseña
 	* @return true éxito / false error
 	*/
 	public function insert(){
-		if (!$this->userExists() && $this->emailExists()) {
-			$this->insertThis();
-			return true;
-		}
-		return false;
+		$this->insertThis();
 	}
-
+	
 	public function update() {
 		$this->updateThis();
 	}
@@ -43,15 +51,15 @@ class User{
 	}
 
 	public function userExists(){
-		$query = 'SELECT * FROM ' . self::dbtable . ' WHERE `user`=' . $this->user;
+		$query = 'SELECT * FROM ' . self::dbtable . ' WHERE user=\'' . $this->user ."'";
 		$result = $this->db->query($query);
-		return $result->numrows > 0;
+		return $result->num_rows > 0;
 	}
 
 	public function emailExists(){
-		$query = 'SELECT * FROM ' . self::dbtable . ' WHERE `email`=' . $this->email;
+		$query = 'SELECT * FROM ' . self::dbtable . ' WHERE `email`=\'' . $this->email . "'";
 		$result = $this->db->query($query);
-		return $result->numrows > 0;
+		return $result->num_rows > 0;
 	}
 
 	/**

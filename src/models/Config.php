@@ -1,10 +1,9 @@
 <?php
-namespace Models;
 
 class Config{
 	const host = "localhost";
 	const username = "root";
-	const pass = "12345";
+	const pass = "Bg6hdtIu9X";
 	const dbname = "omegame";
 }
 

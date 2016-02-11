@@ -1,14 +1,13 @@
 <?php
-namespace Models;
 
 class Db extends mysqli{
-	public static $instance = false;
+	private static $instance = false;
 	
-	public static function instance(){
-		if (__CLASS__::$instance == false) {
-			__CLASS__::$instance = new parent(Config::host, Config::username, Config::pass, Config::dbname);
+	public static function singleton(){
+		if (self::$instance == false) {
+			self::$instance = new parent(Config::host, Config::username, Config::pass, Config::dbname);
 		}
-		return __CLASS__::$instance;
+		return self::$instance;
 	}
 	
 }
